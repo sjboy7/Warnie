@@ -304,25 +304,25 @@ st.set_page_config(initial_sidebar_state=st.session_state.sidebar_state)
 
 
 go_button=st.button('Go',on_click=new_text)
-clear_button=st.button('Clear',on_click=clear_text)
-more_text_button=st.button('More',on_click=more_text)
+# clear_button=st.button('Clear',on_click=clear_text)
+# more_text_button=st.button('More',on_click=more_text)
   
 
-# if (st.session_state["output_text"]):
-    # clear_button=st.button('Clear',on_click=clear_text)
-# else:
-    # if 'clear_button' in locals():
-        # del clear_button
+if (st.session_state["output_text"]):
+    clear_button=st.button('Clear',on_click=clear_text)
+else:
+    if 'clear_button' in locals():
+        del clear_button
 
 st.write(st.session_state.output_text)
 # output_text_object=st.write(st.session_state['speakers_left'])
 
 
-# if (st.session_state["output_text"]):
-    # more_button=st.button('More',on_click=more_text)
-# else:
-    # if 'more_button' in locals():
-        # del more_button
+if (st.session_state["output_text"]):
+    more_button=st.button('More',on_click=more_text)
+else:
+    if 'more_button' in locals():
+        del more_button
     
 
 
