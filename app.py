@@ -2,6 +2,27 @@
 
 import streamlit as st
 import time
+import os
+os.environ['OPENAI_API_KEY'] = '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'
+from langchain.prompts import (
+    ChatPromptTemplate,
+    MessagesPlaceholder,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate
+)
+from langchain.chains import ConversationChain
+from langchain.chat_models import ChatOpenAI
+from langchain.memory import ConversationBufferMemory, ChatMessageHistory, ConversationSummaryMemory
+from langchain import PromptTemplate
+from langchain.chains import LLMChain
+import time
+from langchain.llms import OpenAI
+
+from difflib import SequenceMatcher
+
+import jellyfish
+import random
+from langchain.callbacks import get_openai_callback
 
 class speaker():
   name: str
