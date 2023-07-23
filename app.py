@@ -353,4 +353,4 @@ with st.sidebar:
                                         height=325
 
   )
-  st.write(st.session_state["total_cost_output"])
+  st.write(st.session_state["total_cost_counter"])
