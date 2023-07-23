@@ -46,7 +46,7 @@ if 'variables_declared' not in st.session_state:
     st.session_state["prompt_token_counter"]=0
     st.session_state["completion_token_counter"]=0
     st.session_state["total_cost_counter"]=0
-    st.session_state["total_cost_output"]="Usage: USD"+  st.session_state["total_cost_counter"]
+    st.session_state["total_cost_output"]="Usage: USD"+  str(st.session_state["total_cost_counter"])
     
     st.session_state['speakers']=[]
     st.session_state['speakers'].append(speaker())
