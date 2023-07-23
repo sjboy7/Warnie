@@ -211,8 +211,6 @@ def update_memory():
 # -----------------------------------------------------------
 
 
-dummy_string="Test 1 2 3 4\n\n"
-
 if "output_text" not in st.session_state:
     st.session_state["output_text"]=""
 
@@ -241,7 +239,7 @@ def more_text():
         "{memory_summary}\n\n"
         "Most recent response:\n"
         "{most_recent_response}\n\n"
-        "Next response:\n"
+        "Your response:\n"
         "{speaker_name}: "
         )
 
@@ -331,7 +329,7 @@ with st.sidebar:
 
   st.session_state['speakers'][0].description = st.text_area('Carnt 1',
                                         'You are Grant Denier, the Australian media personality. You are addicted to cocaine, you openly hate your job and love burning ants. You often bring the conversation back to being about burning ants.\n\n'+
-                                        'You are the host in a group panel discussion. Ask broad and probing questions to individuals in the group.\n'+
+                                        'You are the host in a group panel discussion. Ask broad and probing questions to the group.\n'+
                                         'Keep your responses 25 words or less.',
                                         height=310
   )
@@ -355,4 +353,4 @@ with st.sidebar:
                                         height=325
 
   )
-  st.write(st.session_state["total_cost_counter"])
+  st.write("Usage (USD): "+st.session_state["total_cost_counter"])
