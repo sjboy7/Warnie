@@ -345,7 +345,7 @@ with st.sidebar:
                                         'You are a guest in a group panel discussion, you engage in the conversation and only ever response with statements.\n'+
                                         'Keep your responses short, 50 words maximum.\n'+
                                         'Each response must be varied and keep the conversation flowing without any formalities. Share stories and insights from your past.',
-                                        height=415
+                                        height=430
   )
   
   st.session_state['speakers'][2].description = st.text_area('Carnt 3',
