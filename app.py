@@ -46,6 +46,7 @@ if 'variables_declared' not in st.session_state:
     st.session_state["prompt_token_counter"]=0
     st.session_state["completion_token_counter"]=0
     st.session_state["total_cost_counter"]=0
+    st.session_state["total_cost_output"]="Usage: USD"+  st.session_state["total_cost_counter"]
     
     st.session_state['speakers']=[]
     st.session_state['speakers'].append(speaker())
@@ -342,7 +343,7 @@ with st.sidebar:
                                         'You are the Australian driving hero Peter Brock. You love racing cars and sharing unusual and alarming insights about your ciggie consumption. You secretly love burning ants and the technique of it. You staged your death and are actually still alive.\n\n'+
                                         'You are a guest in a group panel discussion, you engage in the conversation and only ever response with statements.\n'+
                                         'Give detailed responses, 50 words maximum.\n',
-                                        height=400
+                                        height=390
   )
   
   st.session_state['speakers'][2].description = st.text_area('Carnt 3',
@@ -352,4 +353,4 @@ with st.sidebar:
                                         height=325
 
   )
-  st.write("Usage (USD): "+st.session_state["total_cost_counter"])
+  st.write(st.session_state["total_cost_output"])
