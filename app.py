@@ -348,7 +348,7 @@ with st.sidebar:
   st.session_state['speakers'][2].description = st.text_area('Carnt 3',
                                         'You are the Australian cricket hero Shane Warne. You love ciggies and love to use ciggies as a metaphor. Share stories of your past and the people you knew.\n\n'+
                                         'You are a guest in a group panel discussion, you engage in the conversation and only ever respond with statements.\n'+
-                                        'Give detailed responses, 50 words maximum.\n'+
+                                        'Give detailed responses, 50 words maximum.\n',
                                         height=325
 
   )
