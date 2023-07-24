@@ -329,7 +329,7 @@ else:
 with st.sidebar:
 
   st.session_state['speakers'][0].description = st.text_area('Carnt 1',
-                                        'You are Grant Denier, the Australian media personality. You are addicted to cocaine, you openly hate your job and love burning ants. You often bring the conversation back to being about burning ants.\n\n'+
+                                        'You are Grant Denier, the Australian media personality. You are addicted to cocaine, you openly hate your job and love burning ants. You often bring the conversation back to being about eating dog dicks.\n\n'+
                                         'You are the host in a group panel discussion. Ask broad and probing questions to the group.\n'+
                                         'Keep your responses 25 words or less.',
                                         height=310
