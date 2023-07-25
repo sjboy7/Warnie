@@ -1,7 +1,6 @@
 import streamlit as st
 import time
 import os
-#os.environ['OPENAI_API_KEY'] = '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'
 from langchain.prompts import (
     ChatPromptTemplate,
     MessagesPlaceholder,
@@ -39,9 +38,6 @@ class StreamHandler(BaseCallbackHandler):
         self.container = container
         self.text=initial_text
     def on_llm_new_token(self, token: str, **kwargs) -> None:
-        # "/" is a marker to show difference 
-        # you don't need it 
-        # self.text+=token+"/" 
         self.text+=token
         self.container.markdown(self.text) 
 
@@ -85,6 +81,8 @@ if 'variables_initialised' not in st.session_state:
     st.session_state['conversation_history'] = []
     st.session_state['variables_initialised']=True
     st.session_state['speaker_index']=0
+    st.session_state["output_text"]=""
+    st.session_state["sidebar_state"] = 'expanded'
 
 # -----------------------------------------------------------
 
@@ -125,6 +123,7 @@ def determine_name(description):
 
 
   chain_speaker_name = LLMChain(llm=llm_speaker_name, prompt=chat_prompt_speaker_name,verbose=False)
+  #run LLM, use a callback to track usage
   with get_openai_callback() as cb:
     result = chain_speaker_name.run(description=description).strip().upper()
     update_usage(cb)
@@ -141,13 +140,13 @@ def update_usage(cb):
 
 # Determine the running summary of the conversation, to form part of contextual memory
 
-#inputs: previous summary, second last line ({speaker name}: {line})
-#outputs: new summary up to the second last line (last line is direct buffer memory)
+#inputs: previous summary, second last line
+#outputs: new summary up to the second last line (last line is excluded from this since it's used directly into contextual memory)
 
 def update_memory():
-  # global st.session_state['memory_summary']
   llm_memory_summary=ChatOpenAI(model_name=st.session_state['summary_model'].model_name, temperature=st.session_state['summary_model'].temperature)
 
+  #template used to create the initial summary 
   template_system_memory_summary_initial = ("Progressively summarize the lines of conversation provided, adding onto the previous summary returning a new summary.\n\n"
 
         "EXAMPLE\n"
@@ -163,7 +162,7 @@ def update_memory():
   )
 
 
-
+  #template for ongoing summary
   template_system_memory_summary_ongoing = ("Progressively summarize the lines of conversation provided, adding onto the previous summary returning a new summary.\n\n"
 
         "EXAMPLE\n"
@@ -174,7 +173,7 @@ def update_memory():
         "SHANE WARNE: I agree, is there anything ciggies can't do?\n\n"
 
         "New summary:\n"
-        "Grant Denier asks a question about ciggies. Peter Brock things that they're good and Shane Warne thinks they can do anything.\n"
+        "Grant Denier asks a question about ciggies. Peter Brock thinks that they're good and Shane Warne thinks they can do anything.\n"
         "END OF EXAMPLE\n\n"
   )
 
@@ -187,7 +186,7 @@ def update_memory():
 
         "New summary:\n"
   )
-
+  
   if len(st.session_state['conversation_history'])<3:
     template_system_memory_summary=template_system_memory_summary_initial
   else:
@@ -202,6 +201,7 @@ def update_memory():
 
   if len(st.session_state['conversation_history'])>1:
     new_lines=st.session_state['speakers'][st.session_state['conversation_history'][len(st.session_state['conversation_history'])-2][0]].name + ": " + st.session_state['conversation_history'][len(st.session_state['conversation_history'])-2][1]
+    #run LLM, use a callback to track usage
     with get_openai_callback() as cb:
       st.session_state['memory_summary']=chain_memory_summary.run(summary=st.session_state['memory_summary'], new_lines=new_lines)
       update_usage(cb)
@@ -209,20 +209,9 @@ def update_memory():
 
 
 # -----------------------------------------------------------
-
-
-# -----------------------------------------------------------
-
-
-if "output_text" not in st.session_state:
-    st.session_state["output_text"]=""
-
-if "speakers_left" not in st.session_state:
-    st.session_state["speakers_left"]=5
+#generate text output
 
 def more_text():
-    # st.session_state['stream_handler'].text=""
-    # st.session_state['chat_box'].empty()
     template_system_conversation_initial= ("{description}\n"
         # "You begin every response with {speaker_name}: \n\n"
     )
@@ -255,18 +244,19 @@ def more_text():
             system_prompt_conversation = SystemMessagePromptTemplate.from_template(template=template_system_conversation_initial, input_variables=['description','speaker_name'])
             human_prompt_conversation = HumanMessagePromptTemplate.from_template(template=template_human_conversation_initial, input_variables=['kickoff_prompt','speaker_name'])
             chat_prompt_conversation = ChatPromptTemplate.from_messages([system_prompt_conversation,human_prompt_conversation])
+            #add name to the start of the streamed text output (AI response doesn't include persons name, that's just tacked on manually)
             st.session_state['stream_handler'].text+=st.session_state['speakers'][st.session_state['speaker_index']].name+": "
             chain_conversation = LLMChain(llm=ChatOpenAI(temperature=st.session_state['conversation_model'].temperature, model_name=st.session_state['conversation_model'].model_name,streaming=True, callbacks=[st.session_state['stream_handler']]), prompt=chat_prompt_conversation,verbose=False)
+            #run LLM, use a callback to track usage
             with get_openai_callback() as cb:
               response=chain_conversation.run(description=st.session_state['speakers'][st.session_state['speaker_index']].description,
                                               kickoff_prompt=st.session_state['kickoff_prompt'],
                                               speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name).lstrip('\"').rstrip('\"')
               update_usage(cb)
-              # llm_response=response.content
-              # st.markdown(llm_response)
+            # add some new lines to the streamed output, ready for next speaker 
             st.session_state['stream_handler'].text+="\n\n"
 
-        # Ongoing conversation
+        # Ongoing conversation, same again just different templates
         else:
             st.session_state['speaker_index']=(st.session_state['speaker_index']+1)%len(st.session_state['speakers'])
             system_prompt_conversation = SystemMessagePromptTemplate.from_template(template=template_system_conversation_ongoing, input_variables=['description','speaker_name'])
@@ -280,30 +270,13 @@ def more_text():
                                     most_recent_response=st.session_state['speakers'][st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][0]].name + ": " + st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][1],
                                     speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name).lstrip('\"').rstrip('\"')
                 
-              # llm_response=response.content
-              # st.markdown(llm_response)
-              # st.markdown(response)
-              # update_usage(cb)
             st.session_state['stream_handler'].text+="\n\n"
 
         st.session_state['conversation_history'].append([st.session_state['speaker_index'],response])
         st.session_state["output_text"]+=(st.session_state['speakers'][st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][0]].name + ": " + st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][1]+"\n\n")
-        # st.session_state["output_text"]+=" done"
-        # update_memory()
-        # st.session_state['speakers_left']-=1
-        # time.sleep(5)
-        
-        # if query and ask_button: 
-        # response = chat([HumanMessage(content=query)])    
-        # llm_response = response.content  
-        # st.markdown(llm_response)
-        
-        # time.sleep(5)
-    # st.session_state['stream_handler'].text=""
-    # time.sleep(5)
-    # st.session_state['chat_box'].empty()
 
-
+# -----------------------------------------------------------
+#reset conversation history/output
     
 def clear_text():
     st.session_state.output_text=""
@@ -311,11 +284,14 @@ def clear_text():
     st.session_state['speaker_index']=0
     st.session_state['memory_summary']=" "
     st.session_state['stream_handler'].text=""
-    
-    # del clear_button
+
+
+# -----------------------------------------------------------
+#start new conversation 
 
 def new_text():
     clear_text()
+    #check for API key
     if os.environ['OPENAI_API_KEY']:
         if os.environ['OPENAI_API_KEY'].lower()=='gwig':
             os.environ['OPENAI_API_KEY']='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'
@@ -323,25 +299,26 @@ def new_text():
             if st.session_state['speakers'][i].description!=st.session_state['speakers'][i].description_old:
                 st.session_state['speakers'][i].name = determine_name(st.session_state['speakers'][i].description)
                 st.session_state['speakers'][i].description_old=st.session_state['speakers'][i].description
-    # st.session_state['speakers_left']=st.session_state['number_of_responses']
-    # st.session_state['speakers_left']=4
         more_text()
     else:
         with st.session_state['chat_box'].container():
             st.markdown("Chuck in an OpenAI API key")
         
-    
+# -----------------------------------------------------------
+# Build up UI
 
-if 'sidebar_state' not in st.session_state:
-    st.session_state.sidebar_state = 'expanded'
+#make the sidebar expanded by default
 st.set_page_config(initial_sidebar_state=st.session_state.sidebar_state)
 
 
+# Widgets laid out in the order they're initialised
+st.button('Go',on_click=new_text)
 
-
-go_button=st.button('Go',on_click=new_text)
-
-
+# Still not really sure how I got this to work
+#  - streamed chat output only appears while it's generated in the 'more text' function, then disappears
+#  - so stream it in the function, then outout to a different persistent container afterwards
+#  - order of the container is important to avoid it shifting around the screen as it moves from one container to the other
+#  - initially chat streamed in the upper container, then after initial chat make the upper container persistent and bump the streamed chat container underneath
 if st.session_state['conversation_history'] and 'output_container' not in st.session_state:
     st.session_state['output_container']=st.empty()
     
@@ -350,35 +327,19 @@ if 'chat_box' not in st.session_state:
     st.session_state['more_button_container']=st.empty() 
     st.session_state['stream_handler'] = StreamHandler(st.session_state['chat_box'])
     
-
-# st.session_state['chat_box']=st.empty() 
-# st.session_state['stream_handler'] = StreamHandler(st.session_state['chat_box'])
-# with st.session_state['chat_box'].container():
-        # st.markdown(st.session_state['stream_handler'].text)
-
 if 'output_container' in st.session_state:
     with st.session_state['output_container'].container():
         st.markdown(st.session_state["output_text"])  
         
-
-
-
-# st.write(st.session_state.output_text)
-# output_text_object=st.write(st.session_state['speakers_left'])
-
-
+# dynamically show/hide 'more' button underneath text, if a conversation exists
 if (st.session_state["output_text"]):
     with st.session_state['more_button_container'].container():
-        # more_button=st.button('More',on_click=more_text)
         st.button('More',on_click=more_text)
 else:
     st.session_state['more_button_container'].empty()
-    # if 'more_button' in locals():
-        # del more_button
-    
 
 
-
+# build up sidebar UI
 with st.sidebar:
 
   st.session_state['speakers'][0].description = st.text_area('Carnt 1',
