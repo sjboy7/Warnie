@@ -1,6 +1,7 @@
 import streamlit as st
 import time
 import os
+import openai
 from langchain.prompts import (
     ChatPromptTemplate,
     MessagesPlaceholder,
