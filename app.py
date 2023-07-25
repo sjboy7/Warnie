@@ -99,12 +99,12 @@ def determine_name(description):
 
   template_system_speaker_name = (
         "You determine a character's name based on their description. \n\n"
-        # "EXAMPLE:\n"
-        # "DESCRIPTION: You are the host in a group panel discussion. Ask broad and probing questions to individuals in the group. You are Grant Denier, the Australian media personality. You are addicted to cocaine, and are always aggressive and pro communism. You often bring the conversation back to being about hentai. Keep your responses 25 words or less.\n"
-        # "NAME: GRANT DENIER\n\n"
-        # "EXAMPLE:\n"
-        # "DESCRIPTION: You are a guest in a group panel discussion, you engage in the conversation and only ever response with statements. You are the Australian driving hero Peter Brock. Peter Brock loved racing cars and smoking ciggies, and loves talking about smoking ciggies and sharing unusual and alarming insights about his ciggie consumption. Keep your responses short, 50 words maximum. Each response must be varied and keep the conversation flowing without any formalities. Share stories and insights from your past.\n"
-        # "NAME: PETER BROCK\n\n"
+        "EXAMPLE:\n"
+        "DESCRIPTION: You are the host in a group panel discussion. Ask broad and probing questions to individuals in the group. You are Grant Denier, the Australian media personality. You are addicted to cocaine, and are always aggressive and pro communism. You often bring the conversation back to being about hentai. Keep your responses 25 words or less.\n"
+        "NAME: GRANT DENIER\n\n"
+        "EXAMPLE:\n"
+        "DESCRIPTION: You are a guest in a group panel discussion, you engage in the conversation and only ever response with statements. You are the Australian driving hero Peter Brock. Peter Brock loved racing cars and smoking ciggies, and loves talking about smoking ciggies and sharing unusual and alarming insights about his ciggie consumption. Keep your responses short, 50 words maximum. Each response must be varied and keep the conversation flowing without any formalities. Share stories and insights from your past.\n"
+        "NAME: PETER BROCK\n\n"
         "EXAMPLE\n"
         "DESCRIPTION: You are a guest in a group panel discussion, you are the Australian cricket hero Shane Warne. Shane Warne loved ciggies, and loves to talk about the techniques of smoking them. \n"
         "NAME: SHANE WARNE\n"
