@@ -295,6 +295,7 @@ def new_text():
     if os.environ['OPENAI_API_KEY']:
         if os.environ['OPENAI_API_KEY'].lower()=='gwig':
             os.environ['OPENAI_API_KEY']='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'
+            openai.api_key = os.environ['OPENAI_API_KEY']
         for i in range(len(st.session_state['speakers'])):
             if st.session_state['speakers'][i].description!=st.session_state['speakers'][i].description_old:
                 st.session_state['speakers'][i].name = determine_name(st.session_state['speakers'][i].description)
