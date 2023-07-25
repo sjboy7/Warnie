@@ -415,5 +415,5 @@ with st.sidebar:
 
   )
   
-  os.environ['OPENAI_API_KEY'] = st.secrets["OPEN_API_KEY"]
-  st.write(st.session_state["total_cost_counter"])
+  os.environ['OPENAI_API_KEY'] = st.text_input("OpenAI API Key")
+  st.write('Usage (USD): ' + {:.2f}".format(st.session_state["total_cost_counter"]))
