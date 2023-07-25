@@ -335,19 +335,11 @@ if 'sidebar_state' not in st.session_state:
     st.session_state.sidebar_state = 'expanded'
 st.set_page_config(initial_sidebar_state=st.session_state.sidebar_state)
 
-col1, col2 = st.columns([0.1,1])
-# col1, col2 = st.beta_columns([.5,1])
-with col1:
-    go_button=st.button('Go',on_click=new_text)
-# clear_button=st.button('Clear',on_click=clear_text)
-# more_text_button=st.button('More',on_click=more_text)
 
-if (st.session_state["output_text"]):
-    with col2:
-        clear_button=st.button('Clear',on_click=clear_text)
-else:
-    if 'clear_button' in locals():
-        del clear_button
+
+
+go_button=st.button('Go',on_click=new_text)
+
 
 if st.session_state['conversation_history'] and 'output_container' not in st.session_state:
     st.session_state['output_container']=st.empty()
