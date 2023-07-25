@@ -23,6 +23,7 @@ from difflib import SequenceMatcher
 import jellyfish
 import random
 from langchain.callbacks import get_openai_callback
+from langchain.callbacks.base import BaseCallbackHandler
 
 
 # -----------------------------------------------------------
@@ -36,7 +37,16 @@ class model():
   model_name: str
   temperature: float
 
-
+class StreamHandler(BaseCallbackHandler):
+    def __init__(self, container, initial_text=""):
+        self.container = container
+        self.text=initial_text
+    def on_llm_new_token(self, token: str, **kwargs) -> None:
+        # "/" is a marker to show difference 
+        # you don't need it 
+        # self.text+=token+"/" 
+        self.text+=token
+        self.container.markdown(self.text) 
 
 # -----------------------------------------------------------
 
@@ -55,21 +65,21 @@ if 'variables_declared' not in st.session_state:
     
       
     st.session_state['speaker_name_model']=model()
-    # st.session_state['speaker_name_model'].model_name="gpt-3.5-turbo"
-    st.session_state['speaker_name_model'].model_name="gpt-4"
+    st.session_state['speaker_name_model'].model_name="gpt-3.5-turbo"
+    # st.session_state['speaker_name_model'].model_name="gpt-4"
     st.session_state['speaker_name_model'].temperature=0.9
 
     st.session_state['summary_model']=model()
     st.session_state['summary_model'].model_name="gpt-3.5-turbo"
-    #st.session_state['summary_model'].model_name="gpt-4"
+    # st.session_state['summary_model'].model_name="gpt-4"
     st.session_state['summary_model'].temperature=0
 
     st.session_state['conversation_model']=model()
-    # st.session_state['conversation_model'].model_name="gpt-3.5-turbo"
-    st.session_state['conversation_model'].model_name="gpt-4"
+    st.session_state['conversation_model'].model_name="gpt-3.5-turbo"
+    # st.session_state['conversation_model'].model_name="gpt-4"
     st.session_state['conversation_model'].temperature=0.9
     st.session_state['verbose']=False
-    st.session_state['number_of_responses']=2
+    st.session_state['number_of_responses']=3
     
     st.session_state['kickoff_prompt']=""
 
@@ -219,6 +229,8 @@ if "speakers_left" not in st.session_state:
     st.session_state["speakers_left"]=5
 
 def more_text():
+    # st.session_state['stream_handler'].text=""
+    # st.session_state['chat_box'].empty()
     template_system_conversation_initial= ("{description}\n"
         "You begin every response with {speaker_name}: \n\n"
     )
@@ -244,38 +256,58 @@ def more_text():
         "{speaker_name}: "
         )
 
+    for i in range(st.session_state['number_of_responses']):
+        # Initial kickoff
+        if len(st.session_state['conversation_history'])==0:
+            st.session_state['speaker_index']=0
+            system_prompt_conversation = SystemMessagePromptTemplate.from_template(template=template_system_conversation_initial, input_variables=['description','speaker_name'])
+            human_prompt_conversation = HumanMessagePromptTemplate.from_template(template=template_human_conversation_initial, input_variables=['kickoff_prompt','speaker_name'])
+            chat_prompt_conversation = ChatPromptTemplate.from_messages([system_prompt_conversation,human_prompt_conversation])
+            st.session_state['stream_handler'].text+=st.session_state['speakers'][st.session_state['speaker_index']].name+": "
+            chain_conversation = LLMChain(llm=ChatOpenAI(temperature=st.session_state['conversation_model'].temperature, model_name=st.session_state['conversation_model'].model_name,streaming=True, callbacks=[st.session_state['stream_handler']]), prompt=chat_prompt_conversation,verbose=False)
+            with get_openai_callback() as cb:
+              response=chain_conversation.run(description=st.session_state['speakers'][st.session_state['speaker_index']].description, kickoff_prompt=st.session_state['kickoff_prompt'], speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name)
+              update_usage(cb)
+              # llm_response=response.content
+              # st.markdown(llm_response)
+            st.session_state['stream_handler'].text+="\n\n"
 
-    # Initial kickoff
-    if len(st.session_state['conversation_history'])==0:
-        st.session_state['speaker_index']=0
-        system_prompt_conversation = SystemMessagePromptTemplate.from_template(template=template_system_conversation_initial, input_variables=['description','speaker_name'])
-        human_prompt_conversation = HumanMessagePromptTemplate.from_template(template=template_human_conversation_initial, input_variables=['kickoff_prompt','speaker_name'])
-        chat_prompt_conversation = ChatPromptTemplate.from_messages([system_prompt_conversation,human_prompt_conversation])
-        chain_conversation = LLMChain(llm=ChatOpenAI(temperature=st.session_state['conversation_model'].temperature, model_name=st.session_state['conversation_model'].model_name), prompt=chat_prompt_conversation,verbose=False)
-        with get_openai_callback() as cb:
-          response=chain_conversation.run(description=st.session_state['speakers'][st.session_state['speaker_index']].description, kickoff_prompt=st.session_state['kickoff_prompt'], speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name)
-          update_usage(cb)
+        # Ongoing conversation
+        else:
+            st.session_state['speaker_index']=(st.session_state['speaker_index']+1)%len(st.session_state['speakers'])
+            system_prompt_conversation = SystemMessagePromptTemplate.from_template(template=template_system_conversation_ongoing, input_variables=['description','speaker_name'])
+            human_prompt_conversation = HumanMessagePromptTemplate.from_template(template=template_human_conversation_ongoing, input_variables=['memory_summary','most_recent_response','speaker_name'])
+            chat_prompt_conversation = ChatPromptTemplate.from_messages([system_prompt_conversation,human_prompt_conversation])
+            st.session_state['stream_handler'].text+=st.session_state['speakers'][st.session_state['speaker_index']].name+": "
+            chain_conversation = LLMChain(llm=ChatOpenAI(temperature=st.session_state['conversation_model'].temperature, model_name=st.session_state['conversation_model'].model_name,streaming=True, callbacks=[st.session_state['stream_handler']]), prompt=chat_prompt_conversation,verbose=False)
+            with get_openai_callback() as cb:
+              response=chain_conversation.run(description=st.session_state['speakers'][st.session_state['speaker_index']].description,
+                                    memory_summary=st.session_state['memory_summary'],
+                                    most_recent_response=st.session_state['speakers'][st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][0]].name + ": " + st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][1],
+                                    speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name)
+              # llm_response=response.content
+              # st.markdown(llm_response)
+              # st.markdown(response)
+              # update_usage(cb)
+            st.session_state['stream_handler'].text+="\n\n"
 
-    # Ongoing conversation
-    else:
-        st.session_state['speaker_index']=(st.session_state['speaker_index']+1)%len(st.session_state['speakers'])
-        system_prompt_conversation = SystemMessagePromptTemplate.from_template(template=template_system_conversation_ongoing, input_variables=['description','speaker_name'])
-        human_prompt_conversation = HumanMessagePromptTemplate.from_template(template=template_human_conversation_ongoing, input_variables=['memory_summary','most_recent_response','speaker_name'])
-        chat_prompt_conversation = ChatPromptTemplate.from_messages([system_prompt_conversation,human_prompt_conversation])
-        chain_conversation = LLMChain(llm=ChatOpenAI(temperature=st.session_state['conversation_model'].temperature, model_name=st.session_state['conversation_model'].model_name), prompt=chat_prompt_conversation,verbose=False)
-        with get_openai_callback() as cb:
-          response=chain_conversation.run(description=st.session_state['speakers'][st.session_state['speaker_index']].description,
-                                memory_summary=st.session_state['memory_summary'],
-                                most_recent_response=st.session_state['speakers'][st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][0]].name + ": " + st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][1],
-                                speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name)
-          update_usage(cb)
+        st.session_state['conversation_history'].append([st.session_state['speaker_index'],response])
+        st.session_state["output_text"]+=(st.session_state['speakers'][st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][0]].name + ": " + st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][1]+"\n\n")
+        # st.session_state["output_text"]+=" done"
+        # update_memory()
+        # st.session_state['speakers_left']-=1
+        # time.sleep(5)
+        
+        # if query and ask_button: 
+        # response = chat([HumanMessage(content=query)])    
+        # llm_response = response.content  
+        # st.markdown(llm_response)
+        
+        # time.sleep(5)
+    # st.session_state['stream_handler'].text=""
+    # time.sleep(5)
+    # st.session_state['chat_box'].empty()
 
-
-    st.session_state['conversation_history'].append([st.session_state['speaker_index'],response])
-    st.session_state["output_text"]+=(st.session_state['speakers'][st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][0]].name + ": " + st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][1]+"\n\n")
-    # st.session_state["output_text"]+=" done"
-    update_memory()
-    # st.session_state['speakers_left']-=1
 
     
 def clear_text():
@@ -283,6 +315,8 @@ def clear_text():
     st.session_state['conversation_history']=[]
     st.session_state['speaker_index']=0
     st.session_state['memory_summary']=" "
+    st.session_state['stream_handler'].text=""
+    
     # del clear_button
 
 def new_text():
@@ -301,27 +335,53 @@ if 'sidebar_state' not in st.session_state:
     st.session_state.sidebar_state = 'expanded'
 st.set_page_config(initial_sidebar_state=st.session_state.sidebar_state)
 
-
-go_button=st.button('Go',on_click=new_text)
+col1, col2 = st.columns([0.1,1])
+# col1, col2 = st.beta_columns([.5,1])
+with col1:
+    go_button=st.button('Go',on_click=new_text)
 # clear_button=st.button('Clear',on_click=clear_text)
 # more_text_button=st.button('More',on_click=more_text)
-  
 
 if (st.session_state["output_text"]):
-    clear_button=st.button('Clear',on_click=clear_text)
+    with col2:
+        clear_button=st.button('Clear',on_click=clear_text)
 else:
     if 'clear_button' in locals():
         del clear_button
 
-st.write(st.session_state.output_text)
+if st.session_state['conversation_history'] and 'output_container' not in st.session_state:
+    st.session_state['output_container']=st.empty()
+    
+if 'chat_box' not in st.session_state:
+    st.session_state['chat_box']=st.empty() 
+    st.session_state['more_button_container']=st.empty() 
+    st.session_state['stream_handler'] = StreamHandler(st.session_state['chat_box'])
+    
+
+# st.session_state['chat_box']=st.empty() 
+# st.session_state['stream_handler'] = StreamHandler(st.session_state['chat_box'])
+# with st.session_state['chat_box'].container():
+        # st.markdown(st.session_state['stream_handler'].text)
+
+if 'output_container' in st.session_state:
+    with st.session_state['output_container'].container():
+        st.markdown(st.session_state["output_text"])  
+        
+
+
+
+# st.write(st.session_state.output_text)
 # output_text_object=st.write(st.session_state['speakers_left'])
 
 
 if (st.session_state["output_text"]):
-    more_button=st.button('More',on_click=more_text)
+    with st.session_state['more_button_container'].container():
+        # more_button=st.button('More',on_click=more_text)
+        st.button('More',on_click=more_text)
 else:
-    if 'more_button' in locals():
-        del more_button
+    st.session_state['more_button_container'].empty()
+    # if 'more_button' in locals():
+        # del more_button
     
 
 
