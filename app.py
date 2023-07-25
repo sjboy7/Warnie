@@ -103,7 +103,7 @@ def determine_name(description):
         "NAME: SHANE WARNE\n"
         "END OF EXAMPLE\n\n"
         "EXAMPLE\n"
-        "DESCRIPTION: You are the director of an American product development business. You have an ENFJ type personality, you love hunting, and you have a bold, macho, overpowering personality\n"
+        "DESCRIPTION: You are a leader in an American anti-vax movement. You love hunting and you have a bold, macho, overpowering personality\n"
         "NAME: CHUCK FREEDOM\n"
         "END OF EXAMPLE\n\n"
         "EXAMPLE\n"
@@ -213,6 +213,7 @@ def update_memory():
 def more_text():
     template_system_conversation_initial= ("{description}\n"
         # "You begin every response with {speaker_name}: \n\n"
+        "Avoid quotation marks in your response.\n\n"                                   
     )
 
 
