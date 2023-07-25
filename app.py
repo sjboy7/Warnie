@@ -267,7 +267,7 @@ def more_text():
             chain_conversation = LLMChain(llm=ChatOpenAI(temperature=st.session_state['conversation_model'].temperature, model_name=st.session_state['conversation_model'].model_name,streaming=True, callbacks=[st.session_state['stream_handler']]), prompt=chat_prompt_conversation,verbose=False)
             with get_openai_callback() as cb:
               response=chain_conversation.run(description=st.session_state['speakers'][st.session_state['speaker_index']].description,
-                                              kickoff_prompt=st.session_state['kickoff_prompt']
+                                              kickoff_prompt=st.session_state['kickoff_prompt'],
                                               speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name).lstrip('\"')
               update_usage(cb)
               # llm_response=response.content
