@@ -3,7 +3,7 @@
 import streamlit as st
 import time
 import os
-os.environ['OPENAI_API_KEY'] = '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'
+#os.environ['OPENAI_API_KEY'] = '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'
 from langchain.prompts import (
     ChatPromptTemplate,
     MessagesPlaceholder,
@@ -324,14 +324,20 @@ def clear_text():
 
 def new_text():
     clear_text()
-    
-    for i in range(len(st.session_state['speakers'])):
-        if st.session_state['speakers'][i].description!=st.session_state['speakers'][i].description_old:
-            st.session_state['speakers'][i].name = determine_name(st.session_state['speakers'][i].description)
-            st.session_state['speakers'][i].description_old=st.session_state['speakers'][i].description
+    if os.environ['OPENAI_API_KEY']:
+        if os.environ['OPENAI_API_KEY'].lower()=='gwig':
+            os.environ['OPENAI_API_KEY']='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'
+        for i in range(len(st.session_state['speakers'])):
+            if st.session_state['speakers'][i].description!=st.session_state['speakers'][i].description_old:
+                st.session_state['speakers'][i].name = determine_name(st.session_state['speakers'][i].description)
+                st.session_state['speakers'][i].description_old=st.session_state['speakers'][i].description
     # st.session_state['speakers_left']=st.session_state['number_of_responses']
     # st.session_state['speakers_left']=4
-    more_text()
+        more_text()
+    else:
+        with st.session_state['chat_box'].container():
+            st.markdown("Chuck in an OpenAI API key")
+        
     
 
 if 'sidebar_state' not in st.session_state:
@@ -408,4 +414,6 @@ with st.sidebar:
                                         height=325
 
   )
+  
+  os.environ['OPENAI_API_KEY'] = st.secrets["OPEN_API_KEY"]
   st.write(st.session_state["total_cost_counter"])
