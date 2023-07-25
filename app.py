@@ -343,7 +343,7 @@ else:
 with st.sidebar:
 
   st.session_state['speakers'][0].description = st.text_area('Carnt 1',
-                                        'You are Grant Denier, the Australian media personality. You are addicted to cocaine, you openly hate your job and love burning ants. You often bring the conversation back to being about eating dog dicks.\n\n'+
+                                        'You are Grant Denier, the Australian media personality. You are addicted to cocaine, you openly hate your job, you often bring the conversation back to being about eating dog dicks.\n\n'+
                                         'You are the host in a group panel discussion. Ask broad and probing questions to the group.\n'+
                                         'Keep your responses 25 words or less.',
                                         height=310
@@ -354,7 +354,7 @@ with st.sidebar:
   
   st.session_state['speakers'][1].description = st.text_area('Carnt 2',
                                         
-                                        'You are the Australian driving hero Peter Brock. You love racing cars and sharing unusual and alarming insights about your ciggie consumption. You secretly love burning ants and the technique of it. You staged your death and are actually still alive.\n\n'+
+                                        'You are the Australian driving hero Peter Brock. You love racing cars and sharing unusual and alarming insights about your ciggie consumption. You secretly love sniffing things and the technique of it. You staged your death and are actually still alive.\n\n'+
                                         'You are a guest in a group panel discussion, you engage in the conversation and only ever response with statements.\n'+
                                         'Give detailed responses, 50 words maximum.\n',
                                         height=390
