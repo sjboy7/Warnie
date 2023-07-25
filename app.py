@@ -232,7 +232,7 @@ def more_text():
     # st.session_state['stream_handler'].text=""
     # st.session_state['chat_box'].empty()
     template_system_conversation_initial= ("{description}\n"
-        "You begin every response with {speaker_name}: \n\n"
+        # "You begin every response with {speaker_name}: \n\n"
     )
 
 
@@ -243,7 +243,7 @@ def more_text():
         )
 
     template_system_conversation_ongoing= ("{description}\n"
-        "You begin every response with {speaker_name}: \n\n"
+        # "You begin every response with {speaker_name}: \n\n"
         "Add to the conversation, based on the summary of the conversation so far and the most recent response in the conversation.\n\n"
     )
 
