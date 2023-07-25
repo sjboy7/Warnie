@@ -1,5 +1,3 @@
-# %%writefile app.py
-
 import streamlit as st
 import time
 import os
@@ -17,9 +15,7 @@ from langchain import PromptTemplate
 from langchain.chains import LLMChain
 import time
 from langchain.llms import OpenAI
-
 from difflib import SequenceMatcher
-
 import jellyfish
 import random
 from langchain.callbacks import get_openai_callback
@@ -37,6 +33,7 @@ class model():
   model_name: str
   temperature: float
 
+# custom callback for streaming text output instead of just chunks of text
 class StreamHandler(BaseCallbackHandler):
     def __init__(self, container, initial_text=""):
         self.container = container
@@ -50,8 +47,8 @@ class StreamHandler(BaseCallbackHandler):
 
 # -----------------------------------------------------------
 
-
-if 'variables_declared' not in st.session_state:
+# initialise global variables
+if 'variables_initialised' not in st.session_state:
 
     st.session_state["prompt_token_counter"]=0
     st.session_state["completion_token_counter"]=0
@@ -86,7 +83,7 @@ if 'variables_declared' not in st.session_state:
 
     st.session_state['memory_summary']=" "
     st.session_state['conversation_history'] = []
-    st.session_state['variables_declared']=True
+    st.session_state['variables_initialised']=True
     st.session_state['speaker_index']=0
 
 # -----------------------------------------------------------
@@ -94,7 +91,6 @@ if 'variables_declared' not in st.session_state:
 
 # Determine speaker name based off description
 def determine_name(description):
-  # llm_speaker_name=ChatOpenAI(model_name='gpt-4',temperature=0.9)
   llm_speaker_name=ChatOpenAI(model_name=st.session_state['speaker_name_model'].model_name, temperature=st.session_state['speaker_name_model'].temperature)
 
   template_system_speaker_name = (
@@ -113,11 +109,7 @@ def determine_name(description):
         "DESCRIPTION: You are the director of an American product development business. You have an ENFJ type personality, you love hunting, and you have a bold, macho, overpowering personality\n"
         "NAME: CHUCK FREEDOM\n"
         "END OF EXAMPLE\n\n"
-        # "EXAMPLE\n"
-        # "DESCRIPTION: You are a guest in a group panel discussion. You are the Australian driving hero Peter Brock. Peter Brock loved racing cars and smoking ciggies."
-        # "NAME: PETER BROCK\n"
-        # "END OF EXAMPLE:\n\n"
-        # "EXAMPLE\n"
+        "EXAMPLE\n"
         "DESCRIPTION: You are a short tempered office clerk. You hate your job, you enteratin topics of conversation briefly before shutting them down with a savage insult. You love burning ants and talking about this\n"
         "NAME: ANT BURNER\n"
         "END OF EXAMPLE\n\n"
