@@ -268,7 +268,7 @@ def more_text():
             with get_openai_callback() as cb:
               response=chain_conversation.run(description=st.session_state['speakers'][st.session_state['speaker_index']].description,
                                               kickoff_prompt=st.session_state['kickoff_prompt'],
-                                              speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name).lstrip('\"')
+                                              speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name).lstrip('\"').rstrip('\"')
               update_usage(cb)
               # llm_response=response.content
               # st.markdown(llm_response)
@@ -286,7 +286,7 @@ def more_text():
               response=chain_conversation.run(description=st.session_state['speakers'][st.session_state['speaker_index']].description,
                                     memory_summary=st.session_state['memory_summary'],
                                     most_recent_response=st.session_state['speakers'][st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][0]].name + ": " + st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][1],
-                                    speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name).lstrip('\"')
+                                    speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name).lstrip('\"').rstrip('\"')
                 
               # llm_response=response.content
               # st.markdown(llm_response)
