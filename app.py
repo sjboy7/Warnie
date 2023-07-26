@@ -267,12 +267,14 @@ def more_text():
                 # add some new lines to the streamed output, ready for next speaker 
                 st.session_state['stream_handler'].text+="\n\n"
             except openai.error.RateLimitError:
-                st.session_state["output_text"]="Error: OpenAI API key out of beans"
-                time.sleep(2)
+                #st.session_state["output_text"]="Error: OpenAI API key out of beans"
+                #time.sleep(2)
+                st.error("Error: OpenAI API key out of beans")
                 return
             except openai.error.AuthenticationError:
-                st.session_state["output_text"]="Error: OpenAI API key invalid"
-                time.sleep(5)
+                #st.session_state["output_text"]="Error: OpenAI API key invalid"
+                #time.sleep(5)
+                st.error("Error: OpenAI API key invalid")
                 return
 
         # Ongoing conversation, same again just different templates
