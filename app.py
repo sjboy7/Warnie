@@ -128,11 +128,11 @@ def determine_name(description):
       with get_openai_callback() as cb:
         result = chain_speaker_name.run(description=description).strip().upper()
         update_usage(cb)
-        return result
+        
   except:
       return ""
 
-
+  return result
 def update_usage(cb):
   st.session_state["prompt_token_counter"]+=cb.prompt_tokens
   st.session_state["completion_token_counter"]+=cb.completion_tokens
@@ -268,9 +268,11 @@ def more_text():
                 st.session_state['stream_handler'].text+="\n\n"
             except openai.error.RateLimitError:
                 st.session_state["output_text"]="Error: OpenAI API key out of beans"
+                time.sleep(2)
                 return
             except openai.error.AuthenticationError:
                 st.session_state["output_text"]="Error: OpenAI API key invalid"
+                time.sleep(2)
                 return
 
         # Ongoing conversation, same again just different templates
