@@ -21,6 +21,17 @@ import random
 from langchain.callbacks import get_openai_callback
 from langchain.callbacks.base import BaseCallbackHandler
 
+# -----------------------------------------------------------
+
+
+hide_st_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_st_style, unsafe_allow_html=True)
 
 # -----------------------------------------------------------
 
