@@ -272,7 +272,7 @@ def more_text():
                 return
             except openai.error.AuthenticationError:
                 st.session_state["output_text"]="Error: OpenAI API key invalid"
-                time.sleep(2)
+                time.sleep(5)
                 return
 
         # Ongoing conversation, same again just different templates
