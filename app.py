@@ -136,8 +136,8 @@ def determine_name(description):
 def update_usage(cb):
   st.session_state["prompt_token_counter"]+=cb.prompt_tokens
   st.session_state["completion_token_counter"]+=cb.completion_tokens
-  st.session_state["total_cost_counter"]+=cb.total_cost
-
+#  st.session_state["total_cost_counter"]+=cb.total_cost
+  st.session_state["total_cost_counter"]=len(st.session_state["output_text"])
 # -----------------------------------------------------------
 
 
