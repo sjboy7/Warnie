@@ -72,7 +72,7 @@ if 'variables_initialised' not in st.session_state:
     st.session_state['conversation_model'].model_name="gpt-4"
     st.session_state['conversation_model'].temperature=0.9
     st.session_state['verbose']=False
-    st.session_state['number_of_responses']=1
+    st.session_state['number_of_responses']=3
     
     st.session_state['kickoff_prompt']=""
 
@@ -136,8 +136,8 @@ def determine_name(description):
 def update_usage(cb):
   st.session_state["prompt_token_counter"]+=cb.prompt_tokens
   st.session_state["completion_token_counter"]+=cb.completion_tokens
-#  st.session_state["total_cost_counter"]+=cb.total_cost
-  st.session_state["total_cost_counter"]=len(st.session_state["output_text"])
+  st.session_state["total_cost_counter"]+=cb.total_cost
+ # st.session_state["total_cost_counter"]=len(st.session_state["output_text"])
 # -----------------------------------------------------------
 
 
@@ -402,4 +402,5 @@ with st.sidebar:
   )
   
   os.environ['OPENAI_API_KEY'] = st.text_input("OpenAI API Key")
-  st.markdown('Usage (USD): '+ "{:.2f}".format(st.session_state.total_cost_counter))
+#  st.markdown('Usage (USD): '+ "{:.2f}".format(st.session_state.total_cost_counter))
+  st.markdown(st.session_state.total_cost_counter)
