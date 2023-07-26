@@ -293,10 +293,12 @@ def more_text():
                     st.session_state['stream_handler'].text+="\n\n"
                     
             except openai.error.RateLimitError:
-                st.session_state["output_text"]="Error: OpenAI API key out of beans"
+                #st.session_state["output_text"]="Error: OpenAI API key out of beans"
+                st.error("Error: OpenAI API key out of beans")
                 return
             except openai.error.AuthenticationError:
-                st.session_state["output_text"]="Error: OpenAI API key invalid"   
+                #st.session_state["output_text"]="Error: OpenAI API key invalid"   
+                st.error("Error: OpenAI API key invalid")
                 return
                 
             
