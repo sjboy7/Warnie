@@ -210,7 +210,8 @@ def update_memory():
       with get_openai_callback() as cb:
         st.session_state['memory_summary']=chain_memory_summary.run(summary=st.session_state['memory_summary'], new_lines=new_lines)
         update_usage(cb)
-
+    except:
+        return
 
 
 # -----------------------------------------------------------
