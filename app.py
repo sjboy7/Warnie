@@ -279,7 +279,6 @@ def more_text():
             system_prompt_conversation = SystemMessagePromptTemplate.from_template(template=template_system_conversation_ongoing, input_variables=['description','speaker_name'])
             human_prompt_conversation = HumanMessagePromptTemplate.from_template(template=template_human_conversation_ongoing, input_variables=['memory_summary','most_recent_response','speaker_name'])
             chat_prompt_conversation = ChatPromptTemplate.from_messages([system_prompt_conversation,human_prompt_conversation])
-            st.session_state['stream_handler'].text+=st.session_state['speakers'][st.session_state['speaker_index']].name+": "
             chain_conversation = LLMChain(llm=ChatOpenAI(temperature=st.session_state['conversation_model'].temperature, model_name=st.session_state['conversation_model'].model_name,streaming=True, callbacks=[st.session_state['stream_handler']]), prompt=chat_prompt_conversation,verbose=False)
             try:
                 st.session_state['stream_handler'].text+=st.session_state['speakers'][st.session_state['speaker_index']].name+": "
