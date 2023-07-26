@@ -1,6 +1,7 @@
 import streamlit as st
 import time
 import os
+import openai
 from langchain.prompts import (
     ChatPromptTemplate,
     MessagesPlaceholder,
@@ -123,10 +124,13 @@ def determine_name(description):
 
   chain_speaker_name = LLMChain(llm=llm_speaker_name, prompt=chat_prompt_speaker_name,verbose=False)
   #run LLM, use a callback to track usage
-  with get_openai_callback() as cb:
-    result = chain_speaker_name.run(description=description).strip().upper()
-    update_usage(cb)
-    return result
+  try:
+      with get_openai_callback() as cb:
+        result = chain_speaker_name.run(description=description).strip().upper()
+        update_usage(cb)
+        return result
+  except:
+      return ""
 
 
 def update_usage(cb):
@@ -200,10 +204,12 @@ def update_memory():
 
   if len(st.session_state['conversation_history'])>1:
     new_lines=st.session_state['speakers'][st.session_state['conversation_history'][len(st.session_state['conversation_history'])-2][0]].name + ": " + st.session_state['conversation_history'][len(st.session_state['conversation_history'])-2][1]
+    
     #run LLM, use a callback to track usage
-    with get_openai_callback() as cb:
-      st.session_state['memory_summary']=chain_memory_summary.run(summary=st.session_state['memory_summary'], new_lines=new_lines)
-      update_usage(cb)
+    try:
+      with get_openai_callback() as cb:
+        st.session_state['memory_summary']=chain_memory_summary.run(summary=st.session_state['memory_summary'], new_lines=new_lines)
+        update_usage(cb)
 
 
 
@@ -247,17 +253,24 @@ def more_text():
             system_prompt_conversation = SystemMessagePromptTemplate.from_template(template=template_system_conversation_initial, input_variables=['description','speaker_name'])
             human_prompt_conversation = HumanMessagePromptTemplate.from_template(template=template_human_conversation_initial, input_variables=['kickoff_prompt','speaker_name'])
             chat_prompt_conversation = ChatPromptTemplate.from_messages([system_prompt_conversation,human_prompt_conversation])
-            #add name to the start of the streamed text output (AI response doesn't include persons name, that's just tacked on manually)
-            st.session_state['stream_handler'].text+=st.session_state['speakers'][st.session_state['speaker_index']].name+": "
             chain_conversation = LLMChain(llm=ChatOpenAI(temperature=st.session_state['conversation_model'].temperature, model_name=st.session_state['conversation_model'].model_name,streaming=True, callbacks=[st.session_state['stream_handler']]), prompt=chat_prompt_conversation,verbose=False)
             #run LLM, use a callback to track usage
-            with get_openai_callback() as cb:
-              response=chain_conversation.run(description=st.session_state['speakers'][st.session_state['speaker_index']].description,
+            try:
+                #add name to the start of the streamed text output (AI response doesn't include persons name, that's just tacked on manually)
+                st.session_state['stream_handler'].text+=st.session_state['speakers'][st.session_state['speaker_index']].name+": "
+                with get_openai_callback() as cb:
+                  response=chain_conversation.run(description=st.session_state['speakers'][st.session_state['speaker_index']].description,
                                               kickoff_prompt=st.session_state['kickoff_prompt'],
                                               speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name).lstrip('\"').rstrip('\"')
-              update_usage(cb)
-            # add some new lines to the streamed output, ready for next speaker 
-            st.session_state['stream_handler'].text+="\n\n"
+                  update_usage(cb)
+                # add some new lines to the streamed output, ready for next speaker 
+                st.session_state['stream_handler'].text+="\n\n"
+            except openai.error.RateLimitError:
+                st.session_state["output_text"]="Error: OpenAI API key out of beans"
+                return
+            except openai.error.AuthenticationError:
+                st.session_state["output_text"]="Error: OpenAI API key invalid"
+                return
 
         # Ongoing conversation, same again just different templates
         else:
@@ -267,13 +280,24 @@ def more_text():
             chat_prompt_conversation = ChatPromptTemplate.from_messages([system_prompt_conversation,human_prompt_conversation])
             st.session_state['stream_handler'].text+=st.session_state['speakers'][st.session_state['speaker_index']].name+": "
             chain_conversation = LLMChain(llm=ChatOpenAI(temperature=st.session_state['conversation_model'].temperature, model_name=st.session_state['conversation_model'].model_name,streaming=True, callbacks=[st.session_state['stream_handler']]), prompt=chat_prompt_conversation,verbose=False)
-            with get_openai_callback() as cb:
-              response=chain_conversation.run(description=st.session_state['speakers'][st.session_state['speaker_index']].description,
+            try:
+                st.session_state['stream_handler'].text+=st.session_state['speakers'][st.session_state['speaker_index']].name+": "
+                with get_openai_callback() as cb:
+                    response=chain_conversation.run(description=st.session_state['speakers'][st.session_state['speaker_index']].description,
                                     memory_summary=st.session_state['memory_summary'],
                                     most_recent_response=st.session_state['speakers'][st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][0]].name + ": " + st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][1],
                                     speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name).lstrip('\"').rstrip('\"')
+                    update_usage(cb)
+                    st.session_state['stream_handler'].text+="\n\n"
+                    
+            except openai.error.RateLimitError:
+                st.session_state["output_text"]="Error: OpenAI API key out of beans"
+                return
+            except openai.error.AuthenticationError:
+                st.session_state["output_text"]="Error: OpenAI API key invalid"   
+                return
                 
-            st.session_state['stream_handler'].text+="\n\n"
+            
 
         st.session_state['conversation_history'].append([st.session_state['speaker_index'],response])
         st.session_state["output_text"]+=(st.session_state['speakers'][st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][0]].name + ": " + st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][1]+"\n\n")
