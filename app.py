@@ -401,5 +401,7 @@ with st.sidebar:
   )
   
   os.environ['OPENAI_API_KEY'] = st.text_input("OpenAI API Key")
-#  st.markdown('Usage (USD): '+ "{:.2f}".format(st.session_state.total_cost_counter))
-  st.markdown(st.session_state.total_cost_counter)
+
+st.sidebar.markdown('Usage (USD): '+ "{:.2f}".format(st.session_state.total_cost_counter))
+
+#st.sidebar.markdown(st.session_state.total_cost_counter)
