@@ -224,7 +224,7 @@ def update_memory():
         st.session_state['memory_summary']=chain_memory_summary.run(summary=st.session_state['memory_summary'], new_lines=new_lines)
         # update_usage(cb)
         prompt=chat_prompt_memory_summary.format(summary=st.session_state['memory_summary'], new_lines=new_lines)
-        update_usage(prompt=prompt,completion=st.session_state['memory_summary'],model=st.session_state['summary_model'].model_name)
+        # update_usage(prompt=prompt,completion=st.session_state['memory_summary'],model=st.session_state['summary_model'].model_name)
     except:
         return
 
@@ -281,7 +281,7 @@ def more_text():
                 prompt=chat_prompt_conversation.format(description=st.session_state['speakers'][st.session_state['speaker_index']].description,
                                               kickoff_prompt=st.session_state['kickoff_prompt'],
                                               speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name)
-                # update_usage(prompt=prompt,completion=response,model=st.session_state['conversation_model'].model_name)
+                update_usage(prompt=prompt,completion=response,model=st.session_state['conversation_model'].model_name)
                 # add some new lines to the streamed output, ready for next speaker 
                 st.session_state['stream_handler'].text+="\n\n"
             except openai.error.RateLimitError:
@@ -313,7 +313,7 @@ def more_text():
                                     memory_summary=st.session_state['memory_summary'],
                                     most_recent_response=st.session_state['speakers'][st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][0]].name + ": " + st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][1],
                                     speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name)
-                # update_usage(prompt=prompt,completion=response,model=st.session_state['conversation_model'].model_name)
+                update_usage(prompt=prompt,completion=response,model=st.session_state['conversation_model'].model_name)
                 st.session_state['stream_handler'].text+="\n\n"
                     
             except openai.error.RateLimitError:
