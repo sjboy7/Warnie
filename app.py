@@ -125,7 +125,7 @@ def determine_name(description):
   chain_speaker_name = LLMChain(llm=llm_speaker_name, prompt=chat_prompt_speaker_name,verbose=False)
   #run LLM, use a callback to track usage
   # try:
-  prompt=chat_prompt_speaker_name.format_messages(description=description).content
+  prompt=chat_prompt_speaker_name.format(description=description).content
   result = chain_speaker_name.run(description=description).strip().upper()
       
   update_usage(prompt=prompt, completion=result,model=st.session_state['speaker_name_model'].model_name)
