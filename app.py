@@ -133,7 +133,7 @@ def determine_name(description):
   # except:
       # return ""
 
-  return response
+  return result
 
 token_usage={'gpt-4':[0.03,0.06],
              'gpt-3.5-turbo':[0.0015,0.002]}
