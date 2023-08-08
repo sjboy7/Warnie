@@ -20,6 +20,7 @@ import jellyfish
 import random
 from langchain.callbacks import get_openai_callback
 from langchain.callbacks.base import BaseCallbackHandler
+import tiktoken
 
 # -----------------------------------------------------------
 
@@ -124,19 +125,32 @@ def determine_name(description):
   chain_speaker_name = LLMChain(llm=llm_speaker_name, prompt=chat_prompt_speaker_name,verbose=False)
   #run LLM, use a callback to track usage
   try:
-      with get_openai_callback() as cb:
-        result = chain_speaker_name.run(description=description).strip().upper()
-        update_usage(cb)
+      prompt=chat_prompt_speaker_name.format_messages(description=description)
+      result = chain_speaker_name.run(description=description).strip().upper()
+      
+      update_usage(prompt=prompt, completion=result,model=st.session_state['speaker_name_model'].model_name)
         
   except:
       return ""
 
-  return result
-def update_usage(cb):
-  st.session_state["prompt_token_counter"]+=cb.prompt_tokens
-  st.session_state["completion_token_counter"]+=cb.completion_tokens
-  st.session_state["total_cost_counter"]+=cb.total_cost
+  return response
+
+token_usage={'gpt-4':[0.03,0.06],
+             'gpt-3.5-turbo':[0.0015,0.002]}
+
+def update_usage(prompt,completion,model):
+  # st.session_state["prompt_token_counter"]+=cb.prompt_tokens
+  # st.session_state["completion_token_counter"]+=cb.completion_tokens
+  # st.session_state["total_cost_counter"]+=cb.total_cost
  # st.session_state["total_cost_counter"]=len(st.session_state["output_text"])
+    enc=tiktoken.tiktoken.encoding_for_model(model)
+    prompt_tokens=len(enc.encode(prompt))
+    prompt_cost=prompt_tokens*token_usage[model]/1000
+    completion_tokens=len(enc.encode(completion))
+    completion_cost=completion_tokens*token_usage[model]/1000
+
+    
+    st.session_state["total_cost_counter"]+=prompt_cost+completion_cost
 # -----------------------------------------------------------
 
 
@@ -207,8 +221,8 @@ def update_memory():
     #run LLM, use a callback to track usage
     try:
       with get_openai_callback() as cb:
-        st.session_state['memory_summary']=chain_memory_summary.run(summary=st.session_state['memory_summary'], new_lines=new_lines)
-        update_usage(cb)
+          st.session_state['memory_summary']=chain_memory_summary.run(summary=st.session_state['memory_summary'], new_lines=new_lines)
+        # update_usage(cb)
     except:
         return
 
@@ -262,7 +276,7 @@ def more_text():
                   response=chain_conversation.run(description=st.session_state['speakers'][st.session_state['speaker_index']].description,
                                               kickoff_prompt=st.session_state['kickoff_prompt'],
                                               speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name).lstrip('\"').rstrip('\"')
-                  update_usage(cb)
+                  # update_usage(cb)
                 # add some new lines to the streamed output, ready for next speaker 
                 st.session_state['stream_handler'].text+="\n\n"
             except openai.error.RateLimitError:
@@ -290,7 +304,7 @@ def more_text():
                                     memory_summary=st.session_state['memory_summary'],
                                     most_recent_response=st.session_state['speakers'][st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][0]].name + ": " + st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][1],
                                     speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name).lstrip('\"').rstrip('\"')
-                    update_usage(cb)
+                    # update_usage(cb)
                     st.session_state['stream_handler'].text+="\n\n"
                     
             except openai.error.RateLimitError:
