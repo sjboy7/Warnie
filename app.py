@@ -135,7 +135,8 @@ def determine_name(description):
 
   return result
 
-token_usage={'gpt-4':[0.03,0.06],
+token_usage={'gpt-4-backup':[0.03,0.06],
+             'gpt-4':[2,0.06],
              'gpt-3.5-turbo':[0.0015,0.002]}
 
 def update_usage(prompt,completion,model):
