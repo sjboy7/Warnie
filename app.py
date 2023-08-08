@@ -221,9 +221,10 @@ def update_memory():
     
     #run LLM, use a callback to track usage
     try:
-      with get_openai_callback() as cb:
-          st.session_state['memory_summary']=chain_memory_summary.run(summary=st.session_state['memory_summary'], new_lines=new_lines)
+        st.session_state['memory_summary']=chain_memory_summary.run(summary=st.session_state['memory_summary'], new_lines=new_lines)
         # update_usage(cb)
+        prompt=chat_prompt_memory_summary.format(summary=st.session_state['memory_summary'], new_lines=new_lines)
+        update_usage(prompt=prompt,completion=st.session_state['memory_summary'],model=st.session_state['summary_model'].model_name)
     except:
         return
 
