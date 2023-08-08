@@ -60,7 +60,7 @@ if 'variables_initialised' not in st.session_state:
     st.session_state['speaker_name_model']=model()
     # st.session_state['speaker_name_model'].model_name="gpt-3.5-turbo"
     st.session_state['speaker_name_model'].model_name="gpt-4"
-    st.session_state['speaker_name_model'].temperature=0.9
+    st.session_state['speaker_name_model'].temperature=0.5
 
     st.session_state['summary_model']=model()
     st.session_state['summary_model'].model_name="gpt-3.5-turbo"
@@ -70,9 +70,9 @@ if 'variables_initialised' not in st.session_state:
     st.session_state['conversation_model']=model()
     # st.session_state['conversation_model'].model_name="gpt-3.5-turbo"
     st.session_state['conversation_model'].model_name="gpt-4"
-    st.session_state['conversation_model'].temperature=0.9
+    st.session_state['conversation_model'].temperature=1.0
     st.session_state['verbose']=False
-    st.session_state['number_of_responses']=1
+    st.session_state['number_of_responses']=3
     
     st.session_state['kickoff_prompt']=""
 
