@@ -145,9 +145,9 @@ def update_usage(prompt,completion,model):
  # st.session_state["total_cost_counter"]=len(st.session_state["output_text"])
     enc=tiktoken.encoding_for_model(model)
     prompt_tokens=len(enc.encode(prompt))
-    prompt_cost=prompt_tokens*token_usage[model]/1000
+    prompt_cost=prompt_tokens*token_usage[model][0]/1000
     completion_tokens=len(enc.encode(completion))
-    completion_cost=completion_tokens*token_usage[model]/1000
+    completion_cost=completion_tokens*token_usage[model][1]/1000
 
     
     st.session_state["total_cost_counter"]+=prompt_cost+completion_cost
