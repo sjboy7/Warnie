@@ -58,8 +58,8 @@ if 'variables_initialised' not in st.session_state:
     
       
     st.session_state['speaker_name_model']=model()
-    st.session_state['speaker_name_model'].model_name="gpt-3.5-turbo"
-    # st.session_state['speaker_name_model'].model_name="gpt-4"
+    # st.session_state['speaker_name_model'].model_name="gpt-3.5-turbo"
+    st.session_state['speaker_name_model'].model_name="gpt-4"
     st.session_state['speaker_name_model'].temperature=0.9
 
     st.session_state['summary_model']=model()
@@ -124,14 +124,14 @@ def determine_name(description):
 
   chain_speaker_name = LLMChain(llm=llm_speaker_name, prompt=chat_prompt_speaker_name,verbose=False)
   #run LLM, use a callback to track usage
-  # try:
-  prompt=chat_prompt_speaker_name.format(description=description)
-  result = chain_speaker_name.run(description=description).strip().upper()
-      
-  # update_usage(prompt=prompt, completion=result,model=st.session_state['speaker_name_model'].model_name)
+  try:
+      prompt=chat_prompt_speaker_name.format(description=description)
+      result = chain_speaker_name.run(description=description).strip().upper()
+          
+      update_usage(prompt=prompt, completion=result,model=st.session_state['speaker_name_model'].model_name)
         
-  # except:
-      # return ""
+  except:
+      return ""
 
   return result
 
@@ -139,10 +139,6 @@ token_usage={'gpt-4':[0.03,0.06],
              'gpt-3.5-turbo':[0.0015,0.002]}
 
 def update_usage(prompt,completion,model):
-  # st.session_state["prompt_token_counter"]+=cb.prompt_tokens
-  # st.session_state["completion_token_counter"]+=cb.completion_tokens
-  # st.session_state["total_cost_counter"]+=cb.total_cost
- # st.session_state["total_cost_counter"]=len(st.session_state["output_text"])
     enc=tiktoken.encoding_for_model(model)
     prompt_tokens=len(enc.encode(prompt))
     prompt_cost=prompt_tokens*token_usage[model][0]/1000
@@ -222,9 +218,8 @@ def update_memory():
     #run LLM, use a callback to track usage
     try:
         st.session_state['memory_summary']=chain_memory_summary.run(summary=st.session_state['memory_summary'], new_lines=new_lines)
-        # update_usage(cb)
         prompt=chat_prompt_memory_summary.format(summary=st.session_state['memory_summary'], new_lines=new_lines)
-        # update_usage(prompt=prompt,completion=st.session_state['memory_summary'],model=st.session_state['summary_model'].model_name)
+        update_usage(prompt=prompt,completion=st.session_state['memory_summary'],model=st.session_state['summary_model'].model_name)
     except:
         return
 
@@ -277,7 +272,7 @@ def more_text():
                 response=chain_conversation.run(description=st.session_state['speakers'][st.session_state['speaker_index']].description,
                                               kickoff_prompt=st.session_state['kickoff_prompt'],
                                               speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name).lstrip('\"').rstrip('\"')
-                  # update_usage(cb)
+                
                 prompt=chat_prompt_conversation.format(description=st.session_state['speakers'][st.session_state['speaker_index']].description,
                                               kickoff_prompt=st.session_state['kickoff_prompt'],
                                               speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name)
@@ -285,13 +280,9 @@ def more_text():
                 # add some new lines to the streamed output, ready for next speaker 
                 st.session_state['stream_handler'].text+="\n\n"
             except openai.error.RateLimitError:
-                #st.session_state["output_text"]="Error: OpenAI API key out of beans"
-                #time.sleep(2)
                 st.error("Error: OpenAI API key out of beans")
                 return
             except openai.error.AuthenticationError:
-                #st.session_state["output_text"]="Error: OpenAI API key invalid"
-                #time.sleep(5)
                 st.error("Error: OpenAI API key invalid")
                 return
 
@@ -308,7 +299,7 @@ def more_text():
                                     memory_summary=st.session_state['memory_summary'],
                                     most_recent_response=st.session_state['speakers'][st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][0]].name + ": " + st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][1],
                                     speaker_name=st.session_state['speakers'][st.session_state['speaker_index']].name).lstrip('\"').rstrip('\"')
-                    # update_usage(cb)
+                
                 prompt=chat_prompt_conversation.format(description=st.session_state['speakers'][st.session_state['speaker_index']].description,
                                     memory_summary=st.session_state['memory_summary'],
                                     most_recent_response=st.session_state['speakers'][st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][0]].name + ": " + st.session_state['conversation_history'][len(st.session_state['conversation_history'])-1][1],
@@ -317,11 +308,9 @@ def more_text():
                 st.session_state['stream_handler'].text+="\n\n"
                     
             except openai.error.RateLimitError:
-                #st.session_state["output_text"]="Error: OpenAI API key out of beans"
                 st.error("Error: OpenAI API key out of beans")
                 return
             except openai.error.AuthenticationError:
-                #st.session_state["output_text"]="Error: OpenAI API key invalid"   
                 st.error("Error: OpenAI API key invalid")
                 return
                 
