@@ -149,7 +149,8 @@ def update_usage(prompt,completion,model):
     completion_tokens=len(enc.encode(completion))
     completion_cost=completion_tokens*token_usage[model][1]/1000
 
-    
+    st.session_state["prompt_token_counter"]+=prompt_tokens
+    st.session_state["completion_token_counter"]+=completion_tokens
     st.session_state["total_cost_counter"]+=prompt_cost+completion_cost
 # -----------------------------------------------------------
 
@@ -417,5 +418,7 @@ with st.sidebar:
   os.environ['OPENAI_API_KEY'] = st.text_input("OpenAI API Key")
 
 st.sidebar.markdown('Usage (USD): '+ "{:.2f}".format(st.session_state.total_cost_counter))
+st.sidebar.markdown('Prompt tokens: '+ "{:.2f}".format(st.session_state.prompt_token_counter))
+st.sidebar.markdown('Completion tokens: '+ "{:.2f}".format(st.session_state.completion_token_counter))
 
 #st.sidebar.markdown(st.session_state.total_cost_counter)
