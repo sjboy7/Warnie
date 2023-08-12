@@ -72,7 +72,7 @@ if 'variables_initialised' not in st.session_state:
     st.session_state['conversation_model'].model_name="gpt-4"
     st.session_state['conversation_model'].temperature=1.0
     st.session_state['verbose']=False
-    st.session_state['number_of_responses']=3
+    st.session_state['number_of_responses']=1
     
     st.session_state['kickoff_prompt']=""
 
