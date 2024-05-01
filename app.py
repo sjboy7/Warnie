@@ -338,7 +338,7 @@ def new_text():
     #check for API key
     if os.environ['OPENAI_API_KEY']:
         if os.environ['OPENAI_API_KEY'].lower()=='gwig':
-            os.environ['OPENAI_API_KEY']='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'
+            os.environ['OPENAI_API_KEY']='deleted key for security'
         for i in range(len(st.session_state['speakers'])):
             if st.session_state['speakers'][i].description!=st.session_state['speakers'][i].description_old:
                 st.session_state['speakers'][i].name = determine_name(st.session_state['speakers'][i].description)
